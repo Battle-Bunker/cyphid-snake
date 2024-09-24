@@ -8,7 +8,7 @@ import (
 	// "github.com/samber/mo"
 	"fmt"
 	"log"
-	// "math"
+	"math"
 	"slices"
 	"strings"
 
@@ -88,7 +88,11 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, nextStatesMap map[string][]GameSnapshot, forwardMoveStrs []string) map[string]float64 {
 	moveScores := make(map[string]float64)
 	for move, states := range nextStatesMap {
-		moveScores[move] = lo.MeanBy(states, heuristic.F())
+		score := lo.MeanBy(states, heuristic.F())
+        if math.IsNaN(score) {
+            score = 0 // Replace NaN with 0
+        }
+        moveScores[move] = score
 	}
 
 	log.Printf("MoveScores for %25s: %s", heuristic.NameAndWeight(), strings.Join(lo.Map(forwardMoveStrs, func(move string, _ int) string {
