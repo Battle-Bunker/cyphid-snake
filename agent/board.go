@@ -13,15 +13,18 @@ const (
 
 type Cell interface {
   Kind() CellKind
+  IsPassable() bool
 }
 
 type EmptyCell struct{}
 
 func (e EmptyCell) Kind() CellKind { return CellEmpty }
+func (e EmptyCell) IsPassable() bool { return true }
 
 type FoodCell struct{}
 
 func (f FoodCell) Kind() CellKind { return CellFood }
+func (f FoodCell) IsPassable() bool { return true }
 
 // We can differentiate snake parts by a named type:
 type SnakePartType int
@@ -49,6 +52,10 @@ func (spc SnakePartCell) Kind() CellKind {
   default:
       return CellEmpty // should never happen
   }
+}
+
+func (spc SnakePartCell) IsPassable() bool {
+  return spc.PartType == SnakePartTail && spc.WillVanishNextTurn
 }
 
 type Board struct {
