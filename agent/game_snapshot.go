@@ -24,6 +24,7 @@ type GameSnapshot interface {
 	Opponents() []SnakeSnapshot
 	AllSnakes() []SnakeSnapshot
 	DeadSnakes() []SnakeSnapshot
+	Board() *Board
 	ApplyMoves(moves []rules.SnakeMove) (GameSnapshot, error)
 }
 
@@ -35,6 +36,7 @@ type gameSnapshotImpl struct {
 	yourID      string
 	allyIDs     []string
 	opponentIDs []string
+	board       *Board // lazy evaluated
 }
 
 // GameSnapshot interface implementation
@@ -221,5 +223,70 @@ func (g *gameSnapshotImpl) UpdateGameSnapshotBoardState(newBoardState *rules.Boa
 		yourID:      g.yourID,
 		allyIDs:     g.allyIDs,
 		opponentIDs: g.opponentIDs,
+		board:       nil, // Reset board cache
 	}
+}
+
+func (g *gameSnapshotImpl) Board() *Board {
+	if g.board == nil {
+		g.board = &Board{
+			Width:  g.Width(),
+			Height: g.Height(),
+			Cells:  make([][]Cell, g.Height()),
+		}
+
+		// Initialize cells
+		for y := 0; y < g.Height(); y++ {
+			g.board.Cells[y] = make([]Cell, g.Width())
+			for x := 0; x < g.Width(); x++ {
+				g.board.Cells[y][x] = EmptyCell{}
+			}
+		}
+
+		// Place food
+		for _, food := range g.Food() {
+			if food.Y < g.Height() && food.X < g.Width() {
+				g.board.Cells[food.Y][food.X] = FoodCell{}
+			}
+		}
+
+		// Place snakes
+		for _, snake := range g.Snakes() {
+			body := snake.Body()
+			if len(body) == 0 {
+				continue
+			}
+
+			// Head
+			if body[0].Y < g.Height() && body[0].X < g.Width() {
+				g.board.Cells[body[0].Y][body[0].X] = SnakePartCell{
+					Snake:    &snake,
+					PartType: SnakePartHead,
+				}
+			}
+
+			// Body
+			for i := 1; i < len(body)-1; i++ {
+				if body[i].Y < g.Height() && body[i].X < g.Width() {
+					g.board.Cells[body[i].Y][body[i].X] = SnakePartCell{
+						Snake:    &snake,
+						PartType: SnakePartBody,
+					}
+				}
+			}
+
+			// Tail
+			if len(body) > 1 {
+				tail := body[len(body)-1]
+				if tail.Y < g.Height() && tail.X < g.Width() {
+					g.board.Cells[tail.Y][tail.X] = SnakePartCell{
+						Snake:              &snake,
+						PartType:           SnakePartTail,
+						WillVanishNextTurn: snake.Health() < 100 && len(snake.Body()) >= 3,
+					}
+				}
+			}
+		}
+	}
+	return g.board
 }
