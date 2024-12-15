@@ -41,9 +41,10 @@ func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataRe
 
 func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	you := snapshot.You()
-	forwardMoves := you.ForwardMoves()
+	board := snapshot.Board()
+	consideredMoves := you.ConsideredMoves(board)
 
-	forwardMoveStrs := lo.Map(forwardMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
+	forwardMoveStrs := lo.Map(consideredMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
 	slices.Sort(forwardMoveStrs)
 	log.Printf("\n\n ### Start Turn %d: Forward Moves = %v", snapshot.Turn(), forwardMoveStrs)
 

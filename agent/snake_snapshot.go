@@ -67,10 +67,13 @@ func (s *snakeSnapshotImpl) LastShout() string {
 	return s.stats.lastShout
 }
 
-func (s *snakeSnapshotImpl) ForwardMoves() []rules.SnakeMove {
+func (s *snakeSnapshotImpl) ConsideredMoves(board *Board) []rules.SnakeMove {
 	possibleMoveStrs := []string{"up", "down", "left", "right"}
 
 	isBackwardMove := func(move string) bool {
+		if s.Length() <= 1 {
+			return false
+		}
 		head := s.Head()
 		neck := s.Body()[1]
 		switch {
@@ -86,15 +89,32 @@ func (s *snakeSnapshotImpl) ForwardMoves() []rules.SnakeMove {
 		return false
 	}
 
-	if s.Length() == 1 {
-		return lo.Map(possibleMoveStrs, func(move string, _ int) rules.SnakeMove {
-			return rules.SnakeMove{ID: s.ID(), Move: move}
-		})
+	isPassable := func(move string) bool {
+		target := s.getTargetPoint(move)
+		if target.X < 0 || target.X >= board.Width || target.Y < 0 || target.Y >= board.Height {
+			return false
+		}
+		return board.Cells[target.Y][target.X].IsPassable()
 	}
 
-	forwardMoves := lo.FilterMap(possibleMoveStrs, func(move string, _ int) (rules.SnakeMove, bool) {
-		return rules.SnakeMove{ID: s.ID(), Move: move}, !isBackwardMove(move)
+	consideredMoves := lo.FilterMap(possibleMoveStrs, func(move string, _ int) (rules.SnakeMove, bool) {
+		return rules.SnakeMove{ID: s.ID(), Move: move}, !isBackwardMove(move) && isPassable(move)
 	})
 
-	return forwardMoves
+	return consideredMoves
+}
+func (s *snakeSnapshotImpl) getTargetPoint(move string) rules.Point {
+	head := s.Head()
+	switch move {
+	case "up":
+		return rules.Point{X: head.X, Y: head.Y + 1}
+	case "down":
+		return rules.Point{X: head.X, Y: head.Y - 1}
+	case "left":
+		return rules.Point{X: head.X - 1, Y: head.Y}
+	case "right":
+		return rules.Point{X: head.X + 1, Y: head.Y}
+	default:
+		return head
+	}
 }
