@@ -37,7 +37,7 @@ type gameSnapshotImpl struct {
 	allyIDs     []string
 	opponentIDs []string
 	board       *Board // lazy evaluated
-	once        sync.Once
+	boardOnce        sync.Once
 }
 
 // GameSnapshot interface implementation
@@ -230,7 +230,7 @@ func (g *gameSnapshotImpl) UpdateGameSnapshotBoardState(newBoardState *rules.Boa
 }
 
 func (g *gameSnapshotImpl) Board() *Board {
-	g.once.Do(func() {
+	g.boardOnce.Do(func() {
 		g.board = &Board{
 			Width:  g.Width(),
 			Height: g.Height(),
@@ -262,7 +262,7 @@ func (g *gameSnapshotImpl) Board() *Board {
 			// Head
 			if body[0].Y < g.Height() && body[0].X < g.Width() {
 				g.board.Cells[body[0].Y][body[0].X] = SnakePartCell{
-					Snake:    &snake,
+					SnakeID:  snake.ID(),
 					PartType: SnakePartHead,
 				}
 			}
@@ -271,7 +271,7 @@ func (g *gameSnapshotImpl) Board() *Board {
 			for i := 1; i < len(body)-1; i++ {
 				if body[i].Y < g.Height() && body[i].X < g.Width() {
 					g.board.Cells[body[i].Y][body[i].X] = SnakePartCell{
-						Snake:    &snake,
+						SnakeID:  snake.ID(),
 						PartType: SnakePartBody,
 					}
 				}

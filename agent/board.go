@@ -35,7 +35,7 @@ const (
 )
 
 type SnakePartCell struct {
-  Snake        *SnakeSnapshot
+  SnakeID      string
   PartType     SnakePartType
   // If this is a tail part that will disappear next turn, we can indicate it here:
   WillVanishNextTurn bool
