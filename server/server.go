@@ -54,7 +54,7 @@ func (s *Server) handleStart(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleMove(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Received move request with Content-Length: %d", r.ContentLength)
+	// log.Printf("Received move request with Content-Length: %d", r.ContentLength)
 
 	if r.Body == nil {
 		log.Printf("Error: request body is nil")
