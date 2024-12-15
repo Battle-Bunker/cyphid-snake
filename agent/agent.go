@@ -41,7 +41,6 @@ func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataRe
 
 func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	you := snapshot.You()
-	board := snapshot.Board()
 	consideredMoves := you.ConsideredMoves()
 
 	forwardMoveStrs := lo.Map(consideredMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
@@ -128,7 +127,7 @@ func (sa *SnakeAgent) generateNextStates(snapshot GameSnapshot, move string) []G
 
 	// Generate all possible move combinations for other snakes
 	presetMoves := map[string]rules.SnakeMove{yourID: {ID: yourID, Move: move}}
-	moveCombinations := generateForwardMoveCombinations(snapshot.Snakes(), presetMoves)
+	moveCombinations := generateConsideredMoveCombinations(snapshot.Snakes(), presetMoves)
 
 	// log.Printf("Trying move %s, combinations: %v", move, getMoveComboList(moveCombinations))
 
@@ -158,7 +157,7 @@ func (sa *SnakeAgent) generateNextStates(snapshot GameSnapshot, move string) []G
 	return nextStates
 }
 
-func generateForwardMoveCombinations(snakes []SnakeSnapshot, presetMoves map[string]rules.SnakeMove) []map[string]rules.SnakeMove {
+func generateConsideredMoveCombinations(snakes []SnakeSnapshot, presetMoves map[string]rules.SnakeMove) []map[string]rules.SnakeMove {
 	presetSnakeIDs := lo.Keys(presetMoves)
 
 	nonPresetSnakes := lo.Filter(snakes, func(snake SnakeSnapshot, _ int) bool {
@@ -171,7 +170,7 @@ func generateForwardMoveCombinations(snakes []SnakeSnapshot, presetMoves map[str
 	}
 
 	nonPresetMoves := lo.Map(nonPresetSnakes, func(snake SnakeSnapshot, _ int) []rules.SnakeMove {
-		return snake.ForwardMoves()
+		return snake.ConsideredMoves()
 	})
 
 	moveCombinations := lib.CartesianProduct(nonPresetMoves...)
