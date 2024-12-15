@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"github.com/samber/lo/parallel"
 )
 
 // Update the SnakeAgent structure to include SnakeMetadataResponse
@@ -53,7 +54,7 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	}
 
 	// slice of maps, for each heuristic, giving mapping: move -> aggScore
-	heuristicScores := lo.Map(sa.Portfolio, func(heuristic WeightedHeuristic, _ int) map[string]float64 {
+	heuristicScores := parallel.Map(sa.Portfolio, func(heuristic WeightedHeuristic, _ int) map[string]float64 {
 		return sa.weightedScoresForHeuristic(heuristic, nextStatesMap, forwardMoveStrs)
 	})
 
@@ -86,9 +87,27 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 }
 
 func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, nextStatesMap map[string][]GameSnapshot, forwardMoveStrs []string) map[string]float64 {
+	type moveScore struct {
+		move  string
+		score float64
+	}
+
+	scores := parallel.Map(forwardMoveStrs, func(move string, _ int) moveScore {
+		states := nextStatesMap[move]
+		// Parallelize state evaluation
+		stateScores := parallel.Map(states, func(state GameSnapshot, _ int) float64 {
+			return heuristic.F()(state)
+		})
+		mean := lo.Mean(stateScores)
+		return moveScore{
+			move:  move,
+			score: mean,
+		}
+	})
+
 	moveScores := make(map[string]float64)
-	for move, states := range nextStatesMap {
-		moveScores[move] = lo.MeanBy(states, heuristic.F())
+	for _, score := range scores {
+		moveScores[score.move] = score.score
 	}
 
 	log.Printf("MoveScores for %25s: %s", heuristic.NameAndWeight(), strings.Join(lo.Map(forwardMoveStrs, func(move string, _ int) string {
