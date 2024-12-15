@@ -47,6 +47,14 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	slices.Sort(consideredMoveStrs)
 	log.Printf("\n\n ### Start Turn %d: Considered Moves = %v", snapshot.Turn(), consideredMoveStrs)
 
+	// If only one move is available, return it immediately
+	if len(consideredMoveStrs) == 1 {
+		return client.MoveResponse{
+			Move:  consideredMoveStrs[0],
+			Shout: "I'm moving " + consideredMoveStrs[0],
+		}
+	}
+
 	// map: move -> set(state snapshots)
 	nextStatesMap := make(map[string][]GameSnapshot)
 	for _, move := range consideredMoveStrs {
