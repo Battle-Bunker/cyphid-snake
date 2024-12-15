@@ -84,6 +84,10 @@ func (s *snakeSnapshotImpl) ConsideredMoves() []rules.SnakeMove {
 		return rules.SnakeMove{ID: s.ID(), Move: move}, isPassable(move)
 	})
 
+	if len(consideredMoves) == 0 {
+		return []rules.SnakeMove{{ID: s.ID(), Move: "up"}}
+	}
+
 	return consideredMoves
 }
 
