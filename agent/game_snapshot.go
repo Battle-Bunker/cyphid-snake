@@ -105,6 +105,7 @@ func (g *gameSnapshotImpl) getSnakeById(id string) SnakeSnapshot {
 	return &snakeSnapshotImpl{
 		stats: snakeStat,
 		snake: &snake,
+		gameSnapshot: g,
 	}
 }
 
@@ -282,7 +283,7 @@ func (g *gameSnapshotImpl) Board() *Board {
 				tail := body[len(body)-1]
 				if tail.Y < g.Height() && tail.X < g.Width() {
 					g.board.Cells[tail.Y][tail.X] = SnakePartCell{
-						Snake:              &snake,
+						SnakeID:            snake.ID(),
 						PartType:           SnakePartTail,
 						WillVanishNextTurn: snake.Health() < 100 && len(snake.Body()) >= 3,
 					}

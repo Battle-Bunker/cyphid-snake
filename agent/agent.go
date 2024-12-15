@@ -43,27 +43,27 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	you := snapshot.You()
 	consideredMoves := you.ConsideredMoves()
 
-	forwardMoveStrs := lo.Map(consideredMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
-	slices.Sort(forwardMoveStrs)
-	log.Printf("\n\n ### Start Turn %d: Forward Moves = %v", snapshot.Turn(), forwardMoveStrs)
+	consideredMoveStrs := lo.Map(consideredMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
+	slices.Sort(consideredMoveStrs)
+	log.Printf("\n\n ### Start Turn %d: Considered Moves = %v", snapshot.Turn(), consideredMoveStrs)
 
 	// map: move -> set(state snapshots)
 	nextStatesMap := make(map[string][]GameSnapshot)
-	for _, move := range forwardMoveStrs {
+	for _, move := range consideredMoveStrs {
 		nextStatesMap[move] = sa.generateNextStates(snapshot, move)
 	}
 
 	// slice of maps, for each heuristic, giving mapping: move -> aggScore
 	heuristicScores := parallel.Map(sa.Portfolio, func(heuristic WeightedHeuristic, _ int) map[string]float64 {
-		return sa.weightedScoresForHeuristic(heuristic, nextStatesMap, forwardMoveStrs)
+		return sa.weightedScoresForHeuristic(heuristic, nextStatesMap, consideredMoveStrs)
 	})
 
 	totalHeuristicWeight := lo.SumBy(sa.Portfolio, func(heuristic WeightedHeuristic) float64 {
 		return heuristic.Weight()
 	})
 
-	// slice of scores aligned with forwardMoveStrs
-	normalizedScores := lo.Map(forwardMoveStrs, func(move string, _ int) float64 {
+	// slice of scores aligned with consideredMoveStrs
+	normalizedScores := lo.Map(consideredMoveStrs, func(move string, _ int) float64 {
 		return lo.SumBy(heuristicScores, func(scores map[string]float64) float64 {
 			return scores[move] / totalHeuristicWeight
 		})
@@ -71,14 +71,14 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 
 	probs := lib.SoftmaxWithTemp(normalizedScores, sa.Temperature)
 
-	log.Printf("### %36s: %s", "Aggregate move weights", strings.Join(lo.Map(forwardMoveStrs, func(move string, i int) string {
+	log.Printf("### %36s: %s", "Aggregate move weights", strings.Join(lo.Map(consideredMoveStrs, func(move string, i int) string {
 		return fmt.Sprintf("%s=%6.1f", move, normalizedScores[i])
 	}), ", "))
-	log.Printf("### %36s: %s", "Aggregate move probabilities", strings.Join(lo.Map(forwardMoveStrs, func(move string, i int) string {
+	log.Printf("### %36s: %s", "Aggregate move probabilities", strings.Join(lo.Map(consideredMoveStrs, func(move string, i int) string {
 		return fmt.Sprintf("%s=%5.1f%%", move, probs[i]*100)
 	}), ", "))
 
-	chosenMove := forwardMoveStrs[lib.SampleFromWeights(probs)]
+	chosenMove := consideredMoveStrs[lib.SampleFromWeights(probs)]
 
 	return client.MoveResponse{
 		Move:  chosenMove,
@@ -86,13 +86,13 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	}
 }
 
-func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, nextStatesMap map[string][]GameSnapshot, forwardMoveStrs []string) map[string]float64 {
+func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, nextStatesMap map[string][]GameSnapshot, consideredMoveStrs []string) map[string]float64 {
 	type moveScore struct {
 		move  string
 		score float64
 	}
 
-	scores := parallel.Map(forwardMoveStrs, func(move string, _ int) moveScore {
+	scores := parallel.Map(consideredMoveStrs, func(move string, _ int) moveScore {
 		states := nextStatesMap[move]
 		// Parallelize state evaluation
 		stateScores := parallel.Map(states, func(state GameSnapshot, _ int) float64 {
@@ -110,7 +110,7 @@ func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, ne
 		moveScores[score.move] = score.score
 	}
 
-	log.Printf("MoveScores for %25s: %s", heuristic.NameAndWeight(), strings.Join(lo.Map(forwardMoveStrs, func(move string, _ int) string {
+	log.Printf("MoveScores for %25s: %s", heuristic.NameAndWeight(), strings.Join(lo.Map(consideredMoveStrs, func(move string, _ int) string {
 		return fmt.Sprintf("%s=%6.1f", move, moveScores[move])
 	}), ", "))
 
