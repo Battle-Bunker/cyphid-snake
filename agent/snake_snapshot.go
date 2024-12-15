@@ -71,25 +71,6 @@ func (s *snakeSnapshotImpl) LastShout() string {
 func (s *snakeSnapshotImpl) ConsideredMoves() []rules.SnakeMove {
 	possibleMoveStrs := []string{"up", "down", "left", "right"}
 
-	isBackwardMove := func(move string) bool {
-		if s.Length() <= 1 {
-			return false
-		}
-		head := s.Head()
-		neck := s.Body()[1]
-		switch {
-		case head.X < neck.X && move == "right":
-			return true
-		case head.X > neck.X && move == "left":
-			return true
-		case head.Y < neck.Y && move == "up":
-			return true
-		case head.Y > neck.Y && move == "down":
-			return true
-		}
-		return false
-	}
-
 	isPassable := func(move string) bool {
 		board := s.gameSnapshot.Board()
 		target := s.getTargetPoint(move)
@@ -100,7 +81,7 @@ func (s *snakeSnapshotImpl) ConsideredMoves() []rules.SnakeMove {
 	}
 
 	consideredMoves := lo.FilterMap(possibleMoveStrs, func(move string, _ int) (rules.SnakeMove, bool) {
-		return rules.SnakeMove{ID: s.ID(), Move: move}, !isBackwardMove(move) && isPassable(move)
+		return rules.SnakeMove{ID: s.ID(), Move: move}, isPassable(move)
 	})
 
 	return consideredMoves
