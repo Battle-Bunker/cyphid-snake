@@ -53,18 +53,38 @@ func (s *Server) handleStart(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleMove(w http.ResponseWriter, r *http.Request) {
-	// log.Println("Received move request")
+	log.Printf("Received move request with Content-Length: %d", r.ContentLength)
 
-	var request client.SnakeRequest
-	
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		log.Printf("Error decoding move request: %v", err)
+	if r.Body == nil {
+		log.Printf("Error: request body is nil")
 		w.WriteHeader(http.StatusBadRequest)
-		response := map[string]string{"error": "unable to decode request"}
-		json.NewEncoder(w).Encode(response)
+		json.NewEncoder(w).Encode(map[string]string{"error": "empty request body"})
 		return
 	}
-	defer r.Body.Close() // Ensure the body is closed
+
+	var request client.SnakeRequest
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Error reading request body: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "failed to read request body"})
+		return
+	}
+	defer r.Body.Close()
+
+	if len(bodyBytes) == 0 {
+		log.Printf("Error: empty request body")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "empty request body"})
+		return
+	}
+
+	if err := json.Unmarshal(bodyBytes, &request); err != nil {
+		log.Printf("Error decoding move request: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(map[string]string{"error": "unable to decode request"})
+		return
+	}
 
 	var gameSnapshot agent.GameSnapshot
 	if gameSnapshot = agent.NewGameSnapshot(&request); gameSnapshot == nil {
