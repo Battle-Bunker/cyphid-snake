@@ -5,8 +5,8 @@ import (
 	"github.com/BattlesnakeOfficial/rules/client"
 	"github.com/samber/lo"
 	"github.com/samber/mo"
-	// "encoding/json"
 	"log"
+	"sync"
 )
 
 type GameSnapshot interface {
@@ -37,6 +37,7 @@ type gameSnapshotImpl struct {
 	allyIDs     []string
 	opponentIDs []string
 	board       *Board // lazy evaluated
+	once        sync.Once
 }
 
 // GameSnapshot interface implementation
@@ -229,7 +230,7 @@ func (g *gameSnapshotImpl) UpdateGameSnapshotBoardState(newBoardState *rules.Boa
 }
 
 func (g *gameSnapshotImpl) Board() *Board {
-	if g.board == nil {
+	g.once.Do(func() {
 		g.board = &Board{
 			Width:  g.Width(),
 			Height: g.Height(),
@@ -288,6 +289,6 @@ func (g *gameSnapshotImpl) Board() *Board {
 				}
 			}
 		}
-	}
+	})
 	return g.board
 }
