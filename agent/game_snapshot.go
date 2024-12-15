@@ -69,8 +69,9 @@ func (g *gameSnapshotImpl) AllSnakes() []SnakeSnapshot {
 	return lo.Map(g.boardState.Snakes, func(snake rules.Snake, _ int) SnakeSnapshot {
 		snakeStat := g.snakeStats[snake.ID]
 		return &snakeSnapshotImpl{
-			stats: snakeStat,
-			snake: &snake,
+			stats:        snakeStat,
+			snake:        &snake,
+			gameSnapshot: g,
 		}
 	})
 }

@@ -42,7 +42,7 @@ func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataRe
 func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	you := snapshot.You()
 	board := snapshot.Board()
-	consideredMoves := you.ConsideredMoves(board)
+	consideredMoves := you.ConsideredMoves()
 
 	forwardMoveStrs := lo.Map(consideredMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
 	slices.Sort(forwardMoveStrs)

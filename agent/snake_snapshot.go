@@ -16,7 +16,7 @@ type SnakeSnapshot interface {
 	Head() rules.Point
 	Length() int
 	LastShout() string
-	ForwardMoves() []rules.SnakeMove
+	ConsideredMoves() []rules.SnakeMove
 }
 
 // SnakeSnapshot interface implementation
@@ -27,8 +27,9 @@ type snakeStatsImpl struct {
 }
 
 type snakeSnapshotImpl struct {
-	stats *snakeStatsImpl
-	snake *rules.Snake
+	stats        *snakeStatsImpl
+	snake        *rules.Snake
+	gameSnapshot *gameSnapshotImpl
 }
 
 func (s *snakeSnapshotImpl) ID() string {
@@ -67,7 +68,7 @@ func (s *snakeSnapshotImpl) LastShout() string {
 	return s.stats.lastShout
 }
 
-func (s *snakeSnapshotImpl) ConsideredMoves(board *Board) []rules.SnakeMove {
+func (s *snakeSnapshotImpl) ConsideredMoves() []rules.SnakeMove {
 	possibleMoveStrs := []string{"up", "down", "left", "right"}
 
 	isBackwardMove := func(move string) bool {
@@ -90,6 +91,7 @@ func (s *snakeSnapshotImpl) ConsideredMoves(board *Board) []rules.SnakeMove {
 	}
 
 	isPassable := func(move string) bool {
+		board := s.gameSnapshot.Board()
 		target := s.getTargetPoint(move)
 		if target.X < 0 || target.X >= board.Width || target.Y < 0 || target.Y >= board.Height {
 			return false
@@ -103,6 +105,7 @@ func (s *snakeSnapshotImpl) ConsideredMoves(board *Board) []rules.SnakeMove {
 
 	return consideredMoves
 }
+
 func (s *snakeSnapshotImpl) getTargetPoint(move string) rules.Point {
 	head := s.Head()
 	switch move {
