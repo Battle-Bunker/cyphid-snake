@@ -53,6 +53,9 @@ func FloodFill(board *agent.Board, start rules.Point, target *rules.Point) (int,
 		}
 		
 		cell := board.Cells[pos.Y][pos.X]
+		if !cell.IsPassable() {
+			return
+		}
 		for _, neighbor := range cell.PassableNeighbours(board) {
 			nPos := neighbor.Coordinates()
 			fill(nPos)
