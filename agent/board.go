@@ -18,6 +18,8 @@ type Cell interface {
 	Kind() CellKind
 	IsPassable() bool
 	Coordinates() rules.Point
+	Neighbours(board *Board) []Cell
+	PassableNeighbours(board *Board) []Cell
 }
 
 type EmptyCell struct {
@@ -82,6 +84,54 @@ func (s SnakePartCell) Kind() CellKind {
 
 func (s SnakePartCell) IsPassable() bool {
 	return s.PartType == SnakePartTail && s.WillVanishNextTurn
+}
+
+func getNeighbours(board *Board, pos rules.Point) []Cell {
+	deltas := []rules.Point{{X: 0, Y: 1}, {X: 0, Y: -1}, {X: 1, Y: 0}, {X: -1, Y: 0}}
+	neighbours := make([]Cell, 0, 4)
+
+	for _, d := range deltas {
+		newX, newY := pos.X+d.X, pos.Y+d.Y
+		if newX >= 0 && newX < board.Width && newY >= 0 && newY < board.Height {
+			neighbours = append(neighbours, board.Cells[newY][newX])
+		}
+	}
+	return neighbours
+}
+
+func getPassableNeighbours(board *Board, pos rules.Point) []Cell {
+	neighbours := getNeighbours(board, pos)
+	passable := make([]Cell, 0, len(neighbours))
+	for _, n := range neighbours {
+		if n.IsPassable() {
+			passable = append(passable, n)
+		}
+	}
+	return passable
+}
+
+func (e EmptyCell) Neighbours(board *Board) []Cell {
+	return getNeighbours(board, e.coordinates)
+}
+
+func (e EmptyCell) PassableNeighbours(board *Board) []Cell {
+	return getPassableNeighbours(board, e.coordinates)
+}
+
+func (f FoodCell) Neighbours(board *Board) []Cell {
+	return getNeighbours(board, f.coordinates)
+}
+
+func (f FoodCell) PassableNeighbours(board *Board) []Cell {
+	return getPassableNeighbours(board, f.coordinates)
+}
+
+func (s SnakePartCell) Neighbours(board *Board) []Cell {
+	return getNeighbours(board, s.coordinates)
+}
+
+func (s SnakePartCell) PassableNeighbours(board *Board) []Cell {
+	return getPassableNeighbours(board, s.coordinates)
 }
 
 type Board struct {
