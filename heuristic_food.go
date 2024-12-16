@@ -3,7 +3,7 @@ package main
 
 import (
 	"github.com/Battle-Bunker/cyphid-snake/agent"
-	"github.com/Battle-Bunker/cyphid-snake/lib"
+	"github.com/Battle-Bunker/cyphid-snake/boardutils"
 )
 
 func HeuristicFood(snapshot agent.GameSnapshot) float64 {
@@ -19,7 +19,7 @@ func HeuristicFood(snapshot agent.GameSnapshot) float64 {
 		return cell.Kind() == agent.CellFood
 	}
 
-	_, dist := lib.FindNearest(board, head, isFoodCell)
+	_, dist := boardutils.FindNearest(board, head, isFoodCell)
 	if dist == -1 {
 		return 0.0 // No reachable food
 	}
