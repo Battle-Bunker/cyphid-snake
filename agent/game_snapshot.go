@@ -232,64 +232,7 @@ func (g *gameSnapshotImpl) UpdateGameSnapshotBoardState(newBoardState *rules.Boa
 
 func (g *gameSnapshotImpl) Board() *Board {
 	g.boardOnce.Do(func() {
-		g.board = &Board{
-			Width:  g.Width(),
-			Height: g.Height(),
-			Cells:  make([][]Cell, g.Height()),
-		}
-
-		// Initialize cells
-		for y := 0; y < g.Height(); y++ {
-			g.board.Cells[y] = make([]Cell, g.Width())
-			for x := 0; x < g.Width(); x++ {
-				g.board.Cells[y][x] = EmptyCell{}
-			}
-		}
-
-		// Place food
-		for _, food := range g.Food() {
-			if food.Y < g.Height() && food.X < g.Width() {
-				g.board.Cells[food.Y][food.X] = FoodCell{}
-			}
-		}
-
-		// Place snakes
-		for _, snake := range g.Snakes() {
-			body := snake.Body()
-			if len(body) == 0 {
-				continue
-			}
-
-			// Head
-			if body[0].Y < g.Height() && body[0].X < g.Width() {
-				g.board.Cells[body[0].Y][body[0].X] = SnakePartCell{
-					SnakeID:  snake.ID(),
-					PartType: SnakePartHead,
-				}
-			}
-
-			// Body
-			for i := 1; i < len(body)-1; i++ {
-				if body[i].Y < g.Height() && body[i].X < g.Width() {
-					g.board.Cells[body[i].Y][body[i].X] = SnakePartCell{
-						SnakeID:  snake.ID(),
-						PartType: SnakePartBody,
-					}
-				}
-			}
-
-			// Tail
-			if len(body) > 1 {
-				tail := body[len(body)-1]
-				if tail.Y < g.Height() && tail.X < g.Width() {
-					g.board.Cells[tail.Y][tail.X] = SnakePartCell{
-						SnakeID:            snake.ID(),
-						PartType:           SnakePartTail,
-						WillVanishNextTurn: snake.Health() < 100 && len(snake.Body()) >= 3,
-					}
-				}
-			}
-		}
+		g.board = NewBoard(g)
 	})
 	return g.board
 }
