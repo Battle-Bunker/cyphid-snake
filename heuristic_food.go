@@ -1,35 +1,28 @@
+
 package main
 
 import (
-  "github.com/Battle-Bunker/cyphid-snake/agent"
-  "math"
+	"github.com/Battle-Bunker/cyphid-snake/agent"
+	"github.com/Battle-Bunker/cyphid-snake/lib"
 )
 
 func HeuristicFood(snapshot agent.GameSnapshot) float64 {
-  foodScore := 0.0
-  food := snapshot.Food()
+	snake := snapshot.You()
+	if snake.Health() == 100 {
+		return 100.0 // Same as original - full health means no food needed
+	}
 
-  for _, snake := range snapshot.YourTeam() {
-    if snake.Health() == 100 {
-      foodScore += 1.0 // Count as distance of 1 to avoid division by zero
-      continue
-    }
+	board := snapshot.Board()
+	head := snake.Head()
 
-    // Find closest food
-    minDist := math.MaxFloat64
-    head := snake.Head()
+	isFoodCell := func(cell agent.Cell) bool {
+		return cell.Kind() == agent.CellFood
+	}
 
-    for _, foodPos := range food {
-      dist := math.Abs(float64(head.X-foodPos.X)) + math.Abs(float64(head.Y-foodPos.Y))
-      if dist < minDist {
-        minDist = dist
-      }
-    }
+	_, dist := lib.FindNearest(board, head, isFoodCell)
+	if dist == -1 {
+		return 0.0 // No reachable food
+	}
 
-    if minDist != math.MaxFloat64 {
-      foodScore += 1.0 / minDist
-    }
-  }
-
-  return foodScore * 100
+	return 100.0 / float64(dist)
 }
