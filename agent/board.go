@@ -1,5 +1,9 @@
 package agent
 
+import (
+    "github.com/BattlesnakeOfficial/rules"
+)
+
 type CellKind int
 
 const (
@@ -92,12 +96,9 @@ func NewBoard(g GameSnapshot) *Board {
 		Cells:  make([][]Cell, g.Height()),
 	}
 
-	// Initialize cells
+	// Initialize cell slices
 	for y := 0; y < g.Height(); y++ {
 		board.Cells[y] = make([]Cell, g.Width())
-		for x := 0; x < g.Width(); x++ {
-			board.Cells[y][x] = EmptyCell{coordinates: rules.Point{X: x, Y: y}}
-		}
 	}
 
 	// Place food
@@ -131,6 +132,15 @@ func NewBoard(g GameSnapshot) *Board {
 			tail := body[len(body)-1]
 			if tail.Y < g.Height() && tail.X < g.Width() {
 				board.Cells[tail.Y][tail.X] = SnakePartCell{coordinates: tail, SnakeID: snake.ID(), PartType: SnakePartTail, WillVanishNextTurn: snake.Health() < 100 && len(snake.Body()) >= 3}
+			}
+		}
+	}
+
+	// Fill remaining cells with EmptyCell
+	for y := 0; y < g.Height(); y++ {
+		for x := 0; x < g.Width(); x++ {
+			if board.Cells[y][x] == nil {
+				board.Cells[y][x] = EmptyCell{coordinates: rules.Point{X: x, Y: y}}
 			}
 		}
 	}
