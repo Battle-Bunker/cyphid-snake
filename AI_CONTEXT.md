@@ -1,3 +1,4 @@
+
 # AI CONTEXT
 
 ## Project Overview
@@ -46,7 +47,6 @@ A good heuristic function should be simple and elegant and address one dimension
 ### Recommending Code Location
 When asked to write heuristic functions, always recommend a filename for the code to go in using the schema heuristic_<name>.go for a heuristic function called Heuristic<Name>.
 
-
 ## Available Interfaces
 
 ### Core Types
@@ -68,6 +68,7 @@ type GameSnapshot interface {
     Opponents() []SnakeSnapshot
     AllSnakes() []SnakeSnapshot
     DeadSnakes() []SnakeSnapshot
+    Board() *Board
     ApplyMoves(moves []rules.SnakeMove) (GameSnapshot, error)
 }
 
@@ -80,21 +81,44 @@ type SnakeSnapshot interface {
     Head() rules.Point
     Length() int
     LastShout() string
-    ForwardMoves() []rules.SnakeMove
+    ConsideredMoves() []rules.SnakeMove
 }
+
+type Cell interface {
+    Kind() CellKind
+    IsPassable() bool
+    Coordinates() rules.Point
+    Neighbours(board *Board) []Cell
+    PassableNeighbours(board *Board) []Cell
+}
+
+type Board struct {
+    Width, Height int
+    Cells [][]Cell
+}
+
+type CellKind int
+
+const (
+    CellEmpty CellKind = iota
+    CellFood
+    CellSnakeHead
+    CellSnakeBody
+    CellSnakeTail
+)
 ```
-h
+
 ## Imports Guide
 
-When implementing your heuristic function, import only the packages you directly use. The `agent` package provides the core interfaces (`GameSnapshot`, `_SnakeSnapshot_`), and the `rules` package provides supporting types like `Point`. For example:
+When implementing your heuristic function, import only the packages you directly use. The `agent` package provides the core interfaces (`GameSnapshot`, `SnakeSnapshot`, `Cell`, `Board`), and the `rules` package provides supporting types like `Point`. For example:
 
 ```go
 package main
 
 import (
-    _ "github.com/Battle-Bunker/cyphid-snake/agent"  // Import if using GameSnapshot or SnakeSnapshot
-    _ "github.com/BattlesnakeOfficial/rules"        // Import if using Point or other rules types
+    "github.com/Battle-Bunker/cyphid-snake/agent"  // Import if using GameSnapshot or SnakeSnapshot
+    "github.com/BattlesnakeOfficial/rules"        // Import if using Point or other rules types
 )
 ```
 
-Only include imports that your code actually references. The compiler will help ensure you have the correct imports.__
+Only include imports that your code actually references. The compiler will help ensure you have the correct imports.
