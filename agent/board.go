@@ -167,13 +167,29 @@ func NewBoard(g GameSnapshot) *Board {
 
 		// Head
 		if body[0].Y < g.Height() && body[0].X < g.Width() {
-			board.Cells[body[0].Y][body[0].X] = SnakePartCell{coordinates: body[0], SnakeID: snake.ID(), PartType: SnakePartHead}
+			cell := SnakePartCell{
+				coordinates: body[0], 
+				SnakeID: snake.ID(), 
+				PartType: SnakePartHead,
+				WillVanishNextTurn: false,
+			}
+			log.Printf("Creating HEAD cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v", 
+				cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn)
+			board.Cells[body[0].Y][body[0].X] = cell
 		}
 
 		// Body
 		for i := 1; i < len(body)-1; i++ {
 			if body[i].Y < g.Height() && body[i].X < g.Width() {
-				board.Cells[body[i].Y][body[i].X] = SnakePartCell{coordinates: body[i], SnakeID: snake.ID(), PartType: SnakePartBody}
+				cell := SnakePartCell{
+					coordinates: body[i], 
+					SnakeID: snake.ID(), 
+					PartType: SnakePartBody,
+					WillVanishNextTurn: false,
+				}
+				log.Printf("Creating BODY cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v", 
+					cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn)
+				board.Cells[body[i].Y][body[i].X] = cell
 			}
 		}
 
@@ -181,7 +197,15 @@ func NewBoard(g GameSnapshot) *Board {
 		if len(body) > 1 {
 			tail := body[len(body)-1]
 			if tail.Y < g.Height() && tail.X < g.Width() {
-				board.Cells[tail.Y][tail.X] = SnakePartCell{coordinates: tail, SnakeID: snake.ID(), PartType: SnakePartTail, WillVanishNextTurn: snake.Health() < 100 && len(snake.Body()) >= 3}
+				cell := SnakePartCell{
+					coordinates: tail, 
+					SnakeID: snake.ID(), 
+					PartType: SnakePartTail,
+					WillVanishNextTurn: snake.Health() < 100 && len(snake.Body()) >= 3,
+				}
+				log.Printf("Creating TAIL cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v", 
+					cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn)
+				board.Cells[tail.Y][tail.X] = cell
 			}
 		}
 	}
