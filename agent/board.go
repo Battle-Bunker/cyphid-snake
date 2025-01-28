@@ -2,6 +2,7 @@ package agent
 
 import (
     "github.com/BattlesnakeOfficial/rules"
+    "log"
 )
 
 type CellKind int
