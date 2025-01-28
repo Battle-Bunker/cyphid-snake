@@ -166,6 +166,10 @@ func NewBoard(g GameSnapshot) *Board {
 			continue
 		}
 
+		if g.Turn() == 1 {
+			log.Printf("Turn 1 - Snake %s body structure: %+v", snake.ID(), body)
+		}
+
 		// Head
 		if body[0].Y < g.Height() && body[0].X < g.Width() {
 			cell := SnakePartCell{
