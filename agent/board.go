@@ -1,8 +1,8 @@
 package agent
 
 import (
-    "github.com/BattlesnakeOfficial/rules"
-    "log"
+	"github.com/BattlesnakeOfficial/rules"
+	_ "log"
 )
 
 type CellKind int
@@ -62,8 +62,8 @@ const (
 
 type SnakePartCell struct {
 	coordinates        rules.Point
-	SnakeID           string
-	PartType          SnakePartType
+	SnakeID            string
+	PartType           SnakePartType
 	WillVanishNextTurn bool
 }
 
@@ -173,13 +173,13 @@ func NewBoard(g GameSnapshot) *Board {
 		// Head
 		if body[0].Y < g.Height() && body[0].X < g.Width() {
 			cell := SnakePartCell{
-				coordinates: body[0], 
-				SnakeID: snake.ID(), 
-				PartType: SnakePartHead,
+				coordinates:        body[0],
+				SnakeID:            snake.ID(),
+				PartType:           SnakePartHead,
 				WillVanishNextTurn: false,
 			}
 			// if g.Turn() == 1 {
-			// 	log.Printf("Turn 1 - Creating HEAD cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d", 
+			// 	log.Printf("Turn 1 - Creating HEAD cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d",
 			// 		cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn, len(body))
 			// }
 			board.Cells[body[0].Y][body[0].X] = cell
@@ -189,13 +189,13 @@ func NewBoard(g GameSnapshot) *Board {
 		for i := 1; i < len(body)-1; i++ {
 			if body[i].Y < g.Height() && body[i].X < g.Width() {
 				cell := SnakePartCell{
-					coordinates: body[i], 
-					SnakeID: snake.ID(), 
-					PartType: SnakePartBody,
+					coordinates:        body[i],
+					SnakeID:            snake.ID(),
+					PartType:           SnakePartBody,
 					WillVanishNextTurn: false,
 				}
 				// if g.Turn() == 1 {
-				// 	log.Printf("Turn 1 - Creating BODY cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d", 
+				// 	log.Printf("Turn 1 - Creating BODY cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d",
 				// 		cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn, len(body))
 				// }
 				board.Cells[body[i].Y][body[i].X] = cell
@@ -207,13 +207,13 @@ func NewBoard(g GameSnapshot) *Board {
 			tail := body[len(body)-1]
 			if tail.Y < g.Height() && tail.X < g.Width() {
 				cell := SnakePartCell{
-					coordinates: tail, 
-					SnakeID: snake.ID(), 
-					PartType: SnakePartTail,
+					coordinates:        tail,
+					SnakeID:            snake.ID(),
+					PartType:           SnakePartTail,
 					WillVanishNextTurn: snake.Health() < 100 && g.Turn() >= 3,
 				}
 				// if g.Turn() == 1 {
-				// 	log.Printf("Turn 1 - Creating TAIL cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d", 
+				// 	log.Printf("Turn 1 - Creating TAIL cell at (%d,%d): SnakeID=%s, PartType=%v, WillVanish=%v, SnakeLength=%d",
 				// 		cell.coordinates.X, cell.coordinates.Y, cell.SnakeID, cell.PartType, cell.WillVanishNextTurn, len(body))
 				// }
 				board.Cells[tail.Y][tail.X] = cell
