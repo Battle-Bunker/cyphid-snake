@@ -18,9 +18,10 @@ import (
 
 // Update the SnakeAgent structure to include SnakeMetadataResponse
 type SnakeAgent struct {
-	Portfolio   HeuristicPortfolio
-	Temperature float64
-	Metadata    client.SnakeMetadataResponse
+	Portfolio          HeuristicPortfolio
+	Temperature        float64
+	Metadata          client.SnakeMetadataResponse
+	TrackPerformance  bool
 }
 
 func NewSnakeAgentWithTemp(portfolio HeuristicPortfolio, temperature float64, metadata client.SnakeMetadataResponse) *SnakeAgent {
@@ -33,9 +34,10 @@ func NewSnakeAgentWithTemp(portfolio HeuristicPortfolio, temperature float64, me
 
 func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataResponse) *SnakeAgent {
 	return &SnakeAgent{
-		Portfolio:   portfolio,
-		Temperature: 5.0,
-		Metadata:    metadata,
+		Portfolio:         portfolio,
+		Temperature:       5.0,
+		Metadata:         metadata,
+		TrackPerformance: true,
 	}
 }
 
@@ -46,6 +48,20 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	consideredMoveStrs := lo.Map(consideredMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
 	slices.Sort(consideredMoveStrs)
 	log.Printf("\n\n ### Start Turn %d: Considered Moves = %v", snapshot.Turn(), consideredMoveStrs)
+	
+	if sa.TrackPerformance {
+		defer func() {
+			log.Printf("### Performance Stats:")
+			for _, h := range sa.Portfolio {
+				micros, evals := h.GetAndResetStats()
+				if evals > 0 {
+					avgMicros := float64(micros) / float64(evals)
+					log.Printf("###   %25s: %6d evals, %8.2f µs/eval, %8d µs total", 
+						h.Name(), evals, avgMicros, micros)
+				}
+			}
+		}()
+	}
 
 	// If only one move is available, return it immediately
 	if len(consideredMoveStrs) == 1 {
