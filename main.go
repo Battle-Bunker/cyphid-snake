@@ -22,7 +22,9 @@ func main() {
 		agent.NewHeuristic(1.0, "space", HeuristicSpace),
 	)
 
-	snakeAgent := agent.NewSnakeAgentWithTemp(portfolio, 5.0, metadata)
+	snakeAgent := agent.NewSnakeAgent(portfolio, metadata, 
+		agent.WithTemperature(5.0),
+		agent.WithPerformanceLogging(true))
 	server := server.NewServer(snakeAgent)
 
 	server.Start()

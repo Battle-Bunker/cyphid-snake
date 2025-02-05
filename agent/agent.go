@@ -18,28 +18,48 @@ import (
 
 // Update the SnakeAgent structure to include SnakeMetadataResponse
 type SnakeAgent struct {
-	Portfolio          HeuristicPortfolio
-	Temperature        float64
-	Metadata          client.SnakeMetadataResponse
-	TrackPerformance  bool
+	Portfolio         HeuristicPortfolio
+	Temperature       float64
+	Metadata         client.SnakeMetadataResponse
+	TrackPerformance bool
 }
 
+// SnakeAgentOption defines a function type for configuring a SnakeAgent
+type SnakeAgentOption func(*SnakeAgent)
+
+// WithTemperature sets the temperature for the snake agent
+func WithTemperature(temp float64) SnakeAgentOption {
+	return func(sa *SnakeAgent) {
+		sa.Temperature = temp
+	}
+}
+
+// WithPerformanceLogging enables or disables performance logging
+func WithPerformanceLogging(enabled bool) SnakeAgentOption {
+	return func(sa *SnakeAgent) {
+		sa.TrackPerformance = enabled
+	}
+}
+
+func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataResponse, opts ...SnakeAgentOption) *SnakeAgent {
+	sa := &SnakeAgent{
+		Portfolio:         portfolio,
+		Temperature:       5.0, // default temperature
+		Metadata:         metadata,
+		TrackPerformance: true, // default to true for backward compatibility
+	}
+
+	// Apply all options
+	for _, opt := range opts {
+		opt(sa)
+	}
+
+	return sa
+}
+
+// Keep NewSnakeAgentWithTemp for backward compatibility
 func NewSnakeAgentWithTemp(portfolio HeuristicPortfolio, temperature float64, metadata client.SnakeMetadataResponse) *SnakeAgent {
-	return &SnakeAgent{
-		Portfolio:         portfolio,
-		Temperature:       temperature,
-		Metadata:          metadata,
-		TrackPerformance:  true,
-	}
-}
-
-func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataResponse) *SnakeAgent {
-	return &SnakeAgent{
-		Portfolio:         portfolio,
-		Temperature:       5.0,
-		Metadata:          metadata,
-		TrackPerformance:  true,
-	}
+	return NewSnakeAgent(portfolio, metadata, WithTemperature(temperature))
 }
 
 func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
