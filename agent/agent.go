@@ -18,10 +18,10 @@ import (
 
 // Update the SnakeAgent structure to include SnakeMetadataResponse
 type SnakeAgent struct {
-	Portfolio         HeuristicPortfolio
-	Temperature       float64
-	Metadata         client.SnakeMetadataResponse
-	TrackPerformance bool
+	Portfolio             HeuristicPortfolio
+	Metadata              client.SnakeMetadataResponse
+	Temperature           float64
+	LogPerformanceStats bool
 }
 
 // SnakeAgentOption defines a function type for configuring a SnakeAgent
@@ -37,16 +37,16 @@ func WithTemperature(temp float64) SnakeAgentOption {
 // WithPerformanceLogging enables or disables performance logging
 func WithPerformanceLogging(enabled bool) SnakeAgentOption {
 	return func(sa *SnakeAgent) {
-		sa.TrackPerformance = enabled
+		sa.LogPerformanceStats = enabled
 	}
 }
 
 func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataResponse, opts ...SnakeAgentOption) *SnakeAgent {
 	sa := &SnakeAgent{
-		Portfolio:         portfolio,
-		Temperature:       5.0, // default temperature
-		Metadata:         metadata,
-		TrackPerformance: true, // default to true for backward compatibility
+		Portfolio:             portfolio,
+		Metadata:              metadata,
+		Temperature:           5.0,  // default temperature
+		LogPerformanceStats: true, // default to true
 	}
 
 	// Apply all options
@@ -69,15 +69,15 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	consideredMoveStrs := lo.Map(consideredMoves, func(move rules.SnakeMove, _ int) string { return move.Move })
 	slices.Sort(consideredMoveStrs)
 	log.Printf("\n\n ### Start Turn %d: Considered Moves = %v", snapshot.Turn(), consideredMoveStrs)
-	
-	if sa.TrackPerformance {
+
+	if sa.LogPerformanceStats {
 		defer func() {
 			log.Printf("### Performance Stats:")
 			for _, h := range sa.Portfolio {
 				micros, evals := h.GetAndResetStats()
 				if evals > 0 {
 					avgMicros := float64(micros) / float64(evals)
-					log.Printf("###   %25s: %6d evals, %8.2f µs/eval, %8d µs total", 
+					log.Printf("###   %25s: %6d evals, %8.2f µs/eval, %8d µs total",
 						h.Name(), evals, avgMicros, micros)
 				}
 			}
