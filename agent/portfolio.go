@@ -2,15 +2,12 @@ package agent
 
 import (
 	"fmt"
+	"sync/atomic"
+	"time"
 )
 
 // HeuristicPortfolio represents a collection of weighted heuristics.
 type HeuristicPortfolio []WeightedHeuristic
-
-import (
-	"sync/atomic"
-	"time"
-)
 
 // WeightedHeuristic is an interface defining the methods to access properties of a weighted heuristic.
 type WeightedHeuristic interface {
