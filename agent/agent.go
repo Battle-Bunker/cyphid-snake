@@ -77,8 +77,9 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 				micros, evals := h.GetAndResetStats()
 				if evals > 0 {
 					avgMicros := float64(micros) / float64(evals)
-					log.Printf("###   %25s: %6d evals, %8.2f µs/eval, %8d µs total",
-						h.Name(), evals, avgMicros, micros)
+					totalMillis := float64(micros) / 1000.0
+					log.Printf("###   %25s: %6d evals, %8.2f µs/eval, %8.2f ms total",
+						h.Name(), evals, avgMicros, totalMillis)
 				}
 			}
 		}()
