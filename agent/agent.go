@@ -26,9 +26,10 @@ type SnakeAgent struct {
 
 func NewSnakeAgentWithTemp(portfolio HeuristicPortfolio, temperature float64, metadata client.SnakeMetadataResponse) *SnakeAgent {
 	return &SnakeAgent{
-		Portfolio:   portfolio,
-		Temperature: temperature,
-		Metadata:    metadata,
+		Portfolio:         portfolio,
+		Temperature:       temperature,
+		Metadata:         metadata,
+		TrackPerformance: true,
 	}
 }
 
