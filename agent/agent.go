@@ -28,8 +28,8 @@ func NewSnakeAgentWithTemp(portfolio HeuristicPortfolio, temperature float64, me
 	return &SnakeAgent{
 		Portfolio:         portfolio,
 		Temperature:       temperature,
-		Metadata:         metadata,
-		TrackPerformance: true,
+		Metadata:          metadata,
+		TrackPerformance:  true,
 	}
 }
 
@@ -37,8 +37,8 @@ func NewSnakeAgent(portfolio HeuristicPortfolio, metadata client.SnakeMetadataRe
 	return &SnakeAgent{
 		Portfolio:         portfolio,
 		Temperature:       5.0,
-		Metadata:         metadata,
-		TrackPerformance: true,
+		Metadata:          metadata,
+		TrackPerformance:  true,
 	}
 }
 
