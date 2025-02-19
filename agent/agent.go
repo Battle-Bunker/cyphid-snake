@@ -100,7 +100,7 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	}
 
 	// slice of maps, for each heuristic, giving mapping: move -> aggScore
-	allScores := parallel.Map(sa.Portfolio, func(heuristic WeightedHeuristic, _ int) HeuristicScores {
+	allScores := parallel.Map(sa.Portfolio, func(heuristic WeightedHeuristic, _ int) map[string]HeuristicScore {
 		return sa.weightedScoresForHeuristic(heuristic, nextStatesMap, consideredMoveStrs)
 	})
 
@@ -108,7 +108,7 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	for i, heuristic := range sa.Portfolio {
 		scores := allScores[i]
 		log.Printf("MoveScores for %25s: %s", heuristic.NameAndWeight(), strings.Join(lo.Map(consideredMoveStrs, func(move string, _ int) string {
-			return fmt.Sprintf("%s=%6.1f", move, scores.Raw[move])
+			return fmt.Sprintf("%s=%6.1f", move, scores[move].Raw)
 		}), ", "))
 	}
 
@@ -118,8 +118,8 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 
 	// slice of scores aligned with consideredMoveStrs
 	normalizedScores := lo.Map(consideredMoveStrs, func(move string, _ int) float64 {
-		return lo.SumBy(allScores, func(scores HeuristicScores) float64 {
-			return scores.Weighted[move] / totalHeuristicWeight
+		return lo.SumBy(allScores, func(scores map[string]HeuristicScore) float64 {
+			return scores[move].Weighted / totalHeuristicWeight
 		})
 	})
 
@@ -140,12 +140,12 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 	}
 }
 
-type HeuristicScores struct {
-	Raw      map[string]float64
-	Weighted map[string]float64
+type HeuristicScore struct {
+	Raw      float64
+	Weighted float64
 }
 
-func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, nextStatesMap map[string][]GameSnapshot, consideredMoveStrs []string) HeuristicScores {
+func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, nextStatesMap map[string][]GameSnapshot, consideredMoveStrs []string) map[string]HeuristicScore {
 	type moveScore struct {
 		move  string
 		score float64
@@ -164,19 +164,15 @@ func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, ne
 		}
 	})
 
-	moveScores := make(map[string]float64)
+	result := make(map[string]HeuristicScore)
 	for _, score := range scores {
-		moveScores[score.move] = score.score
+		result[score.move] = HeuristicScore{
+			Raw:      score.score,
+			Weighted: score.score * heuristic.Weight(),
+		}
 	}
 
-	weightedScores := lo.MapValues(moveScores, func(score float64, _ string) float64 {
-		return score * heuristic.Weight()
-	})
-
-	return HeuristicScores{
-		Raw:      moveScores,
-		Weighted: weightedScores,
-	}
+	return result
 }
 
 func (sa *SnakeAgent) generateNextStates(snapshot GameSnapshot, move string) []GameSnapshot {
