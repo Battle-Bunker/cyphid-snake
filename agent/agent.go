@@ -27,6 +27,12 @@ type SnakeAgent struct {
 // SnakeAgentOption defines a function type for configuring a SnakeAgent
 type SnakeAgentOption func(*SnakeAgent)
 
+// HeuristicScore represents a score with both raw and weighted values
+type HeuristicScore struct {
+	Raw      float64
+	Weighted float64
+}
+
 // WithTemperature sets the temperature for the snake agent
 func WithTemperature(temp float64) SnakeAgentOption {
 	return func(sa *SnakeAgent) {
@@ -125,10 +131,10 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 
 	probs := lib.SoftmaxWithTemp(normalizedScores, sa.Temperature)
 
-	log.Printf("### %36s: %s", "Aggregate move weights", strings.Join(lo.Map(consideredMoveStrs, func(move string, i int) string {
+	log.Printf("### %36s: %s", "Normalized Weights", strings.Join(lo.Map(consideredMoveStrs, func(move string, i int) string {
 		return fmt.Sprintf("%s=%6.1f", move, normalizedScores[i])
 	}), ", "))
-	log.Printf("### %36s: %s", "Aggregate move probabilities", strings.Join(lo.Map(consideredMoveStrs, func(move string, i int) string {
+	log.Printf("### %36s: %s", "Move Probabilities", strings.Join(lo.Map(consideredMoveStrs, func(move string, i int) string {
 		return fmt.Sprintf("%s=%5.1f%%", move, probs[i]*100)
 	}), ", "))
 
@@ -138,11 +144,6 @@ func (sa *SnakeAgent) ChooseMove(snapshot GameSnapshot) client.MoveResponse {
 		Move:  chosenMove,
 		Shout: "I'm moving " + chosenMove,
 	}
-}
-
-type HeuristicScore struct {
-	Raw      float64
-	Weighted float64
 }
 
 func (sa *SnakeAgent) weightedScoresForHeuristic(heuristic WeightedHeuristic, nextStatesMap map[string][]GameSnapshot, consideredMoveStrs []string) map[string]HeuristicScore {
