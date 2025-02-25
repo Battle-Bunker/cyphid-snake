@@ -38,5 +38,33 @@ func FindNearest(board *agent.Board, start rules.Point, predicate func(agent.Cel
 
 // FloodFill returns the count of reachable cells and whether a target position is reachable
 func FloodFill(board *agent.Board, start rules.Point, target *rules.Point) (int, bool) {
-	return 0, false
+	visited := make(map[rules.Point]bool)
+	queue := board.Cells[start.Y][start.X].PassableNeighbours(board)
+	count := 0
+	targetFound := false
+
+	// Mark start as visited to prevent backtracking
+	visited[start] = true
+
+	// Process all cells including initial neighbors
+	for len(queue) > 0 {
+		current := queue[0]
+		queue = queue[1:]
+		
+		pos := current.Coordinates()
+		if !visited[pos] {
+			visited[pos] = true
+			count++
+
+			// Check if this is the target position
+			if target != nil && pos.X == target.X && pos.Y == target.Y {
+				targetFound = true
+			}
+
+			// Add unvisited passable neighbors
+			queue = append(queue, current.PassableNeighbours(board)...)
+		}
+	}
+
+	return count, targetFound
 }
