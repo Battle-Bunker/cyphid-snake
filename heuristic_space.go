@@ -4,7 +4,7 @@ package main
 import (
 	"github.com/Battle-Bunker/cyphid-snake/agent"
 	"github.com/Battle-Bunker/cyphid-snake/boardutils"
-	"log"
+	// "log"
 )
 
 func HeuristicSpace(snapshot agent.GameSnapshot) float64 {
@@ -16,7 +16,7 @@ func HeuristicSpace(snapshot agent.GameSnapshot) float64 {
 	tail := snake.Body()[len(snake.Body())-1]
 	spaces, tailReachable := boardutils.FloodFill(board, head, &tail)
 	
-	log.Printf("Spaces available: %d, Tail reachable: %t", spaces, tailReachable)
+	// log.Printf("Spaces available: %d, Tail reachable: %t", spaces, tailReachable)
 	
 	if tailReachable {
 		return 100.0
