@@ -160,7 +160,7 @@ func NewBoard(g GameSnapshot) *Board {
 	}
 
 	// Place snakes
-	for _, snake := range g.Snakes() {
+	for _, snake := range g.AliveSnakes() {
 		body := snake.Body()
 		if len(body) == 0 {
 			continue

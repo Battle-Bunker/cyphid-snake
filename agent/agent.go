@@ -182,7 +182,7 @@ func (sa *SnakeAgent) generateNextStates(snapshot GameSnapshot, move string) []G
 
 	// Generate all possible move combinations for other snakes
 	presetMoves := map[string]rules.SnakeMove{yourID: {ID: yourID, Move: move}}
-	moveCombinations := generateConsideredMoveCombinations(snapshot.Snakes(), presetMoves)
+	moveCombinations := generateConsideredMoveCombinations(snapshot.AliveSnakes(), presetMoves)
 
 	// log.Printf("Trying move %s, combinations: %v", move, getMoveComboList(moveCombinations))
 

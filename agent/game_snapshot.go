@@ -18,7 +18,7 @@ type GameSnapshot interface {
 	Food() []rules.Point
 	Hazards() []rules.Point
 	You() SnakeSnapshot
-	Snakes() []SnakeSnapshot
+	AliveSnakes() []SnakeSnapshot
 	Teammates() []SnakeSnapshot
 	YourTeam() []SnakeSnapshot
 	Opponents() []SnakeSnapshot
@@ -83,7 +83,7 @@ func (g *gameSnapshotImpl) DeadSnakes() []SnakeSnapshot {
 	})
 }
 
-func (g *gameSnapshotImpl) Snakes() []SnakeSnapshot {
+func (g *gameSnapshotImpl) AliveSnakes() []SnakeSnapshot {
 	return lo.Filter(g.AllSnakes(), func(s SnakeSnapshot, _ int) bool {
 		return s.Alive()
 	})
